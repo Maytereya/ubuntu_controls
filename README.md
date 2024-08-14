@@ -1,3 +1,5 @@
-# ubuntu_controls
-GPU fan controls
-Ollama Docker Start settings
+# GPU FAN CONTROLS
+## Ollama docker server start
+
+* GPU fan controls trough systemd 
+* Ollama Docker Start settings
