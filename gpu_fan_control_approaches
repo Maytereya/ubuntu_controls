@@ -8,7 +8,7 @@ nvcc --version 
 
 nvidia-smi 
 
-# manual speed control:
+## Manual speed control:
 
 sudo nvidia-settings -c :0 -a "[gpu:0]/GPUFanControlState=1"
 sudo nvidia-settings -c :0 -a "[fan:0]/GPUTargetFanSpeed=100"
@@ -22,86 +22,49 @@ sudo nvidia-settings -c :0 -a "[fan:0]/GPUTargetFanSpeed=60"
 sudo nvidia-settings -c :0 -a "[gpu:1]/GPUFanControlState=1"
 sudo nvidia-settings -c :0 -a "[fan:1]/GPUTargetFanSpeed=60"
 
-# temp control:
+# Temp control:
 
 nvidia-settings -c :0 -q [gpu:0]/GPUCoreTemp
 nvidia-settings -c :0 -q [gpu:1]/GPUCoreTemp
 
-# switch off:
+# Switch off:
 
 sudo nvidia-settings -c :0 -a "[gpu:0]/GPUFanControlState=0"
 sudo nvidia-settings -c :0 -a "[gpu:1]/GPUFanControlState=0"
 
-# check fans:
+# Check fans:
 nvidia-settings -c :0 -q [fan:0]/GPUCurrentFanSpeed
-
-
-# through systemd!
-
-# Создайте файл службы systemd: 
-
-   sudo nano /etc/systemd/system/mytask.service
-
-# Добавьте в файл следующий config:
-
-[Unit]
-Description=Run my command every 10 seconds
-[Service]
-Type=simple
-ExecStart=/path/to/your/script.sh
-Restart=always
-RestartSec=10
-[Install]
-WantedBy=default.target
-  
-   # * Description описывает службу.
-   # * Type=simple указывает на то, что служба активно управляется systemd.
-   # * ExecStart — путь к исполняемому скрипту, который вы хотите запускать.
-   # * Restart=always говорит systemd перезапускать службу после её завершения.
-   # * RestartSec=10 устанавливает задержку в 10 секунд между перезапусками.
-   # * WantedBy=default.target определяет, при каком условии служба должна быть автоматически запущена.
-
-Создайте и сделайте исполняемым ваш скрипт:
-
- sudo nano /path/to/your/script.sh
-
-# Введите ваш скрипт, например:
-
-!/bin/bash
-echo "Script is running"
-copy code sudo chmod +x /path/to/your/script.sh
-
-# Управление службой systemd
-
-# Перезагрузите systemd, чтобы применить изменения:  
-
-sudo systemctl daemon-reload 
-
-# Запустите службу:
-
-sudo systemctl start mytask.service  
-
-# Включите службу, чтобы она запускалась при старте системы:  
-
-sudo systemctl enable mytask.service  
-
-# Проверка статуса службы:  
-
-sudo systemctl status mytask.service 
-
-# Остановка и отключение службы при необходимости:  
-
-sudo systemctl stop mytask.service
-
-# or:
-
-sudo systemctl disable mytask.service  
 
 
 
 ## Автоматический скрипт запуска вентиляторов on system boot
 
+# Cлужба gpu_fan_control.service отвечает за автоматический запуск скрипта set_gpu_fan_speed.sh 
+# при старте системы, что позволяет автоматически устанавливать скорость вентиляторов на 
+# GPU без необходимости ручного запуска скрипта после каждой перезагрузки.
+
+nano /etc/systemd/system/gpu_fan_control.service
+
+# Вставить:
+
+[Unit]
+Description=Set GPU Fan Speed
+After=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/set_gpu_fan_speed.sh
+RemainAfterExit=yes
+User=root
+
+[Install]
+WantedBy=graphical.target
+
+# Окончание вставки.
+
  sudo nano /usr/local/bin/set_gpu_fan_speed.sh
+
+# Вставить:
 
 #!/bin/bash
 export DISPLAY=:0
@@ -109,8 +72,11 @@ export XAUTHORITY=/home/<your_username>/.Xauthority  # change <your_username> on
 /usr/bin/nvidia-settings -c :0 -a "[gpu:0]/GPUFanControlState=1"
 /usr/bin/nvidia-settings -c :0 -a "[fan:0]/GPUTargetFanSpeed=50" #10..100
 /usr/bin/nvidia-settings -c :0 -a "[gpu:1]/GPUFanControlState=1"
-/usr/bin/nvidia-settings -c :0 -a "[fan:1]/GPUTargetFanSpeed=50"  sudo systemctl daemon-reload
+/usr/bin/nvidia-settings -c :0 -a "[fan:1]/GPUTargetFanSpeed=50"  
 
+# Окончание вставки.
+
+sudo systemctl daemon-reload
 sudo systemctl restart gpu_fan_control.service 
 
 # Проверка:
