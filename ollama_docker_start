@@ -1,6 +1,6 @@
 # How to start ollama in docker
 
-# Запуск Ollama
+# Загрузка Ollama:latest
 
 https://hub.docker.com/r/ollama/ollama
 
