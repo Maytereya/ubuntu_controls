@@ -1,0 +1,133 @@
+# GPU Fan control
+
+# Проверьте версию CUDA через команду nvcc: 
+
+nvcc --version 
+
+# Проверьте установленную версию драйвера NVIDIA и соответствующую версию CUDA: 
+
+nvidia-smi 
+
+# manual speed control:
+
+sudo nvidia-settings -c :0 -a "[gpu:0]/GPUFanControlState=1"
+sudo nvidia-settings -c :0 -a "[fan:0]/GPUTargetFanSpeed=100"
+sudo nvidia-settings -c :0 -a "[gpu:1]/GPUFanControlState=1"
+sudo nvidia-settings -c :0 -a "[fan:1]/GPUTargetFanSpeed=100"
+
+# or:
+
+sudo nvidia-settings -c :0 -a "[gpu:0]/GPUFanControlState=1"
+sudo nvidia-settings -c :0 -a "[fan:0]/GPUTargetFanSpeed=60"
+sudo nvidia-settings -c :0 -a "[gpu:1]/GPUFanControlState=1"
+sudo nvidia-settings -c :0 -a "[fan:1]/GPUTargetFanSpeed=60"
+
+# temp control:
+
+nvidia-settings -c :0 -q [gpu:0]/GPUCoreTemp
+nvidia-settings -c :0 -q [gpu:1]/GPUCoreTemp
+
+# switch off:
+
+sudo nvidia-settings -c :0 -a "[gpu:0]/GPUFanControlState=0"
+sudo nvidia-settings -c :0 -a "[gpu:1]/GPUFanControlState=0"
+
+# check fans:
+nvidia-settings -c :0 -q [fan:0]/GPUCurrentFanSpeed
+
+
+# through systemd!
+
+# Создайте файл службы systemd: 
+
+   sudo nano /etc/systemd/system/mytask.service
+
+# Добавьте в файл следующий config:
+
+[Unit]
+Description=Run my command every 10 seconds
+[Service]
+Type=simple
+ExecStart=/path/to/your/script.sh
+Restart=always
+RestartSec=10
+[Install]
+WantedBy=default.target
+  
+   # * Description описывает службу.
+   # * Type=simple указывает на то, что служба активно управляется systemd.
+   # * ExecStart — путь к исполняемому скрипту, который вы хотите запускать.
+   # * Restart=always говорит systemd перезапускать службу после её завершения.
+   # * RestartSec=10 устанавливает задержку в 10 секунд между перезапусками.
+   # * WantedBy=default.target определяет, при каком условии служба должна быть автоматически запущена.
+
+Создайте и сделайте исполняемым ваш скрипт:
+
+ sudo nano /path/to/your/script.sh
+
+# Введите ваш скрипт, например:
+
+!/bin/bash
+echo "Script is running"
+copy code sudo chmod +x /path/to/your/script.sh
+
+# Управление службой systemd
+
+# Перезагрузите systemd, чтобы применить изменения:  
+
+sudo systemctl daemon-reload 
+
+# Запустите службу:
+
+sudo systemctl start mytask.service  
+
+# Включите службу, чтобы она запускалась при старте системы:  
+
+sudo systemctl enable mytask.service  
+
+# Проверка статуса службы:  
+
+sudo systemctl status mytask.service 
+
+# Остановка и отключение службы при необходимости:  
+
+sudo systemctl stop mytask.service
+
+# or:
+
+sudo systemctl disable mytask.service  
+
+
+
+## Автоматический скрипт запуска вентиляторов on system boot
+
+ sudo nano /usr/local/bin/set_gpu_fan_speed.sh
+
+#!/bin/bash
+export DISPLAY=:0
+export XAUTHORITY=/home/<your_username>/.Xauthority  # change <your_username> on your oun.
+/usr/bin/nvidia-settings -c :0 -a "[gpu:0]/GPUFanControlState=1"
+/usr/bin/nvidia-settings -c :0 -a "[fan:0]/GPUTargetFanSpeed=50" #10..100
+/usr/bin/nvidia-settings -c :0 -a "[gpu:1]/GPUFanControlState=1"
+/usr/bin/nvidia-settings -c :0 -a "[fan:1]/GPUTargetFanSpeed=50"  sudo systemctl daemon-reload
+
+sudo systemctl restart gpu_fan_control.service 
+
+# Проверка:
+
+sudo systemctl status gpu_fan_control.service
+
+# Вариант ответа:
+
+● gpu_fan_control.service - Set GPU Fan Speed
+     Loaded: loaded (/etc/systemd/system/gpu_fan_control.service; enabled; vendor preset: enabled)
+     Active: active (exited) since Tue 2024-08-06 11:02:52 +04; 1 week 1 day ago
+   Main PID: 1158 (code=exited, status=0/SUCCESS)
+        CPU: 82ms
+
+авг 06 11:02:52 anax systemd[1]: Starting Set GPU Fan Speed...
+авг 06 11:02:52 anax set_gpu_fan_speed.sh[1161]:   Attribute 'GPUFanControlState' ([gpu:0]) assigned value 1.
+авг 06 11:02:52 anax set_gpu_fan_speed.sh[1300]:   Attribute 'GPUTargetFanSpeed' ([fan:0]) assigned value 50.
+авг 06 11:02:52 anax set_gpu_fan_speed.sh[1301]:   Attribute 'GPUFanControlState' ([gpu:1]) assigned value 1.
+авг 06 11:02:52 anax set_gpu_fan_speed.sh[1343]:   Attribute 'GPUTargetFanSpeed' ([fan:1]) assigned value 50.
+авг 06 11:02:52 anax systemd[1]: Finished Set GPU Fan Speed.
