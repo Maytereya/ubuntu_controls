@@ -1,0 +1,17 @@
+# How to start ollama in docker
+
+# Запуск Ollama
+
+https://hub.docker.com/r/ollama/ollama
+
+# bash:
+
+docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama --restart always ollama/ollama
+
+# [тоже самое без рестарта]:
+
+docker run -d --gpus=all -v ollama:/root/.ollama -p 11434:11434 --name ollama ollama/ollama  
+
+# Execute example:
+
+docker exec -it ollama ollama pull nous-hermes2-mixtral:8x7b-dpo-fp16
