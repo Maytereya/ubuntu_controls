@@ -1,0 +1,62 @@
+# SYSTEMD (варианты реализации)!
+
+# Создайте файл службы systemd: 
+
+   sudo nano /etc/systemd/system/mytask.service
+
+# Добавьте в файл следующий config:
+
+[Unit]
+Description=Run my command every 10 seconds
+[Service]
+Type=simple
+ExecStart=/path/to/your/script.sh
+Restart=always
+RestartSec=10
+[Install]
+WantedBy=default.target
+  
+   # * Description описывает службу.
+   # * Type=simple указывает на то, что служба активно управляется systemd.
+   # * ExecStart — путь к исполняемому скрипту, который вы хотите запускать.
+   # * Restart=always говорит systemd перезапускать службу после её завершения.
+   # * RestartSec=10 устанавливает задержку в 10 секунд между перезапусками.
+   # * WantedBy=default.target определяет, при каком условии служба должна быть автоматически запущена.
+
+Создайте и сделайте исполняемым ваш скрипт:
+
+ sudo nano /path/to/your/script.sh
+
+# Введите ваш скрипт, например:
+
+!/bin/bash
+echo "Script is running"
+copy code sudo chmod +x /path/to/your/script.sh
+
+
+
+# Управление службой systemd
+
+# Перезагрузите systemd, чтобы применить изменения:  
+
+sudo systemctl daemon-reload 
+
+# Запустите службу:
+
+sudo systemctl start mytask.service  
+
+# Включите службу, чтобы она запускалась при старте системы:  
+
+sudo systemctl enable mytask.service  
+
+# Проверка статуса службы:  
+
+sudo systemctl status mytask.service 
+
+# Остановка и отключение службы при необходимости:  
+
+sudo systemctl stop mytask.service
+
+# or:
+
+sudo systemctl disable mytask.service  
